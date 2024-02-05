@@ -1,5 +1,7 @@
 import os
 import requests
+from bs4 import BeautifulSoup
+import lxml
 
 # For Amazon Scrapping
 MY_HEADER_USER_AGENT = os.environ.get("MY_HEADER_USER_AGENT")
@@ -34,3 +36,20 @@ target_price = 50
 
 response = requests.get(url=URL_PRODUCT, headers=amazon_headers, timeout=120)
 amazon_product_html = response.text
+
+soup = BeautifulSoup(amazon_product_html, "lxml")
+
+whole_price_content_tag = soup.find(name="div", class_="a-section a-spacing-none aok-align-center aok-relative")
+
+whole_price_content = soup.find(name="span", class_="aok-offscreen").getText().strip()
+# We need to take only the price with symbol, because content can look like this: "$49.91 with 9 percent savings"
+price_with_symbol = whole_price_content.split()[0]  # Result: "$49.91"
+
+# Take the currency symbol from price tag
+price_symbol = whole_price_content_tag.find(name="span", class_="a-price-symbol").getText()  # Result: "$"
+
+# Get the price float number by splitting by resulted symbol
+product_price = float(price_with_symbol.split(price_symbol)[1])  # Result: "49.91"
+
+# Get product title
+product_title = soup.find(id="productTitle").getText().strip()
