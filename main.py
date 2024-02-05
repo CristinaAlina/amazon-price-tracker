@@ -2,6 +2,7 @@ import os
 import requests
 from bs4 import BeautifulSoup
 import lxml
+import smtplib
 
 # For Amazon Scrapping
 MY_HEADER_USER_AGENT = os.environ.get("MY_HEADER_USER_AGENT")
@@ -53,3 +54,13 @@ product_price = float(price_with_symbol.split(price_symbol)[1])  # Result: "49.9
 
 # Get product title
 product_title = soup.find(id="productTitle").getText().strip()
+
+if product_price <= target_price:
+    with smtplib.SMTP("smtp.gmail.com", 587, timeout=120) as connection:
+        connection.starttls()
+        connection.login(user=MY_EMAIL_ADDRESS, password=MY_PASSWORD)
+
+        connection.sendmail(to_addrs=MY_EMAIL_ADDRESS,
+                            from_addr=MY_EMAIL_ADDRESS,
+                            msg=f"Subject: Amazon Price Alert!\n\n"
+                                f"{product_title}\nnow {price_with_symbol}\n{URL_PRODUCT}")
